@@ -33,10 +33,10 @@ metadata {
 	tiles (scale: 2) {
    	 	multiAttributeTile(name:"garageDoor", type: "generic", width: 6, height: 4){
         	tileAttribute ("device.switch", key: "PRIMARY_CONTROL") {
-            	attributeState "open", label:'${name}', icon:"st.contact.contact.open", backgroundColor:"#ffa81e"
-            	attributeState "closed", label:'${name}', icon:"st.contact.contact.closed", backgroundColor:"#79b821"
-            	attributeState "garage-open", label:'Open', icon:"st.doors.garage.garage-open", backgroundColor:"#ffa81e"
-            	attributeState "garage-closed", label:'Closed', icon:"st.doors.garage.garage-closed", backgroundColor:"#79b821"
+            	attributeState "off", label: 'Closed', action: "switch.on", icon: "st.doors.garage.garage-closed", backgroundColor: "#79b821", nextState: "opening"
+            	attributeState "on", label: 'Open', action: "switch.off", icon: "st.doors.garage.garage-open", backgroundColor: "#ffa81e", nextState: "closing"
+            	attributeState "opening", label: "Opening", action: "switch.off", icon: "st.doors.garage.garage-opening", backgroundColor: "89C2E8"
+            	attributeState "closing", label: "Closing", action: "switch.on", icon: "st.doors.garage.garage-closing", backgroundColor: "89C2E8"
         	}
         }
 //        standardTile("garageDoor", "device.switch", width: 1, height: 1, canChangeIcon: true, canChangeBackground: true) {
