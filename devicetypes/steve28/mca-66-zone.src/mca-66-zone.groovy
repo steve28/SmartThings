@@ -34,59 +34,56 @@ metadata {
         command "volDown"
 	}
 
-
 	simulator {
 		// TODO: define status and reply messages here
 	}
 
-	tiles(scale: 2) {
+    tiles(scale: 2) {
         multiAttributeTile(name:"switch", type:"generic", width:6, height:4) {
-          tileAttribute ("device.switch", key: "PRIMARY_CONTROL") {
-            attributeState "on", label:'On', action:"switch.off", icon:"st.Electronics.electronics16", backgroundColor:"#79b821"
-            attributeState "off", label:'Off', action:"switch.on", icon:"st.Electronics.electronics16", backgroundColor:"#ffffff", defaultState: true
-          }
-          tileAttribute ("device.sourceName", key: "SECONDARY_CONTROL") {
-            attributeState "sourceName", label:'${currentValue}'
-          }
-          tileAttribute ("device.volume", key: "SLIDER_CONTROL",range:"(0..61)") {
-        	attributeState "volume", action:"setVol"
-          }
-          tileAttribute("device.volume", key: "VALUE_CONTROL") {
-        	attributeState "VALUE_UP", action: "volUp"
-        	attributeState "VALUE_DOWN", action: "volDown"
-          }
-        //controlTile("volume", "device.volume", "slider", height: 1, width: 6, range:"(0..61)") {
-        //	state "volume", label: "Volume", action:"setVol", backgroundColor:"#00a0dc"
-		}
-     	standardTile("s1", "device.source1", decoration: "flat", width: 1, height: 1) {
-      		state("off", label:"Source 1", action:"source1", icon:"https://raw.githubusercontent.com/redloro/smartthings/master/images/indicator-dot-gray.png", backgroundColor:"#ffffff")
-      		state("on", label:"Source 1", action:"source1", icon:"https://raw.githubusercontent.com/redloro/smartthings/master/images/indicator-dot-green.png", backgroundColor:"#ffffff")
-		}
+            tileAttribute ("device.switch", key: "PRIMARY_CONTROL") {
+                attributeState "on", label:'On', action:"switch.off", icon:"st.Electronics.electronics16", backgroundColor:"#79b821"
+                attributeState "off", label:'Off', action:"switch.on", icon:"st.Electronics.electronics16", backgroundColor:"#ffffff", defaultState: true
+            }
+            tileAttribute ("device.sourceName", key: "SECONDARY_CONTROL") {
+                attributeState "sourceName", label:'${currentValue}'
+            }
+            tileAttribute ("device.volume", key: "SLIDER_CONTROL",range:"(0..61)") {
+                attributeState "volume", action:"setVol"
+            }
+            tileAttribute("device.volume", key: "VALUE_CONTROL") {
+                attributeState "VALUE_UP", action: "volUp"
+                attributeState "VALUE_DOWN", action: "volDown"
+            }
+        }
+        standardTile("s1", "device.source1", decoration: "flat", width: 1, height: 1) {
+            state("off", label:"Source 1", action:"source1", icon:"https://raw.githubusercontent.com/redloro/smartthings/master/images/indicator-dot-gray.png", backgroundColor:"#ffffff")
+            state("on", label:"Source 1", action:"source1", icon:"https://raw.githubusercontent.com/redloro/smartthings/master/images/indicator-dot-green.png", backgroundColor:"#ffffff")
+        }
         standardTile("source2", "device.source2", decoration: "flat", width: 1, height: 1) {
-      		state("off", label:"Source 2", action:"source2", icon:"https://raw.githubusercontent.com/redloro/smartthings/master/images/indicator-dot-gray.png", backgroundColor:"#ffffff")
-      		state("on", label:"Source 2", action:"source2", icon:"https://raw.githubusercontent.com/redloro/smartthings/master/images/indicator-dot-green.png", backgroundColor:"#ffffff")
+            state("off", label:"Source 2", action:"source2", icon:"https://raw.githubusercontent.com/redloro/smartthings/master/images/indicator-dot-gray.png", backgroundColor:"#ffffff")
+            state("on", label:"Source 2", action:"source2", icon:"https://raw.githubusercontent.com/redloro/smartthings/master/images/indicator-dot-green.png", backgroundColor:"#ffffff")
         }
         standardTile("source3", "device.source3", decoration: "flat", width: 1, height: 1) {
-      		state("off", label:"Source 3", action:"source3", icon:"https://raw.githubusercontent.com/redloro/smartthings/master/images/indicator-dot-gray.png", backgroundColor:"#ffffff")
-      		state("on", label:"Source 3", action:"source3", icon:"https://raw.githubusercontent.com/redloro/smartthings/master/images/indicator-dot-green.png", backgroundColor:"#ffffff")   
-    	}
+            state("off", label:"Source 3", action:"source3", icon:"https://raw.githubusercontent.com/redloro/smartthings/master/images/indicator-dot-gray.png", backgroundColor:"#ffffff")
+            state("on", label:"Source 3", action:"source3", icon:"https://raw.githubusercontent.com/redloro/smartthings/master/images/indicator-dot-green.png", backgroundColor:"#ffffff")   
+        }
         standardTile("allInside", "device.source3", decoration: "flat", width: 1, height: 1) {
-      		state("default", label:"All Inside", action:"allInside", icon:"https://raw.githubusercontent.com/redloro/smartthings/master/images/indicator-dot-gray.png", backgroundColor:"#ffffff")
-    	}
+            state("default", label:"All Inside", action:"allInside", icon:"https://raw.githubusercontent.com/redloro/smartthings/master/images/indicator-dot-power.png", backgroundColor:"#ffffff")
+        }
         standardTile("allOn", "device.source3", decoration: "flat", width: 1, height: 1) {
-      		state("default", label:"All On", action:"allOn", icon:"https://raw.githubusercontent.com/redloro/smartthings/master/images/indicator-dot-power.png", backgroundColor:"#ffffff")
-    	}
+            state("default", label:"All On", action:"allOn", icon:"https://raw.githubusercontent.com/redloro/smartthings/master/images/indicator-dot-power.png", backgroundColor:"#ffffff")
+        }
         standardTile("allOff", "device.source3", decoration: "flat", width: 1, height: 1) {
-      		state("default", label:"All Off", action:"allOff", icon:"https://raw.githubusercontent.com/redloro/smartthings/master/images/indicator-dot-power.png", backgroundColor:"#ffffff")
+            state("default", label:"All Off", action:"allOff", icon:"https://raw.githubusercontent.com/redloro/smartthings/master/images/indicator-dot-power.png", backgroundColor:"#ffffff")
         }
 
-	}
+    }
 }
 
 // parse events into attributes
 def parse(String description) {
 	log.debug "Parsing '${description}'"
-	// TODO: handle 'switch' attribute
+	// Nothing to do here, my parent handles this.
 
 }
 
@@ -97,23 +94,20 @@ def poll() {
 }
 
 def refresh() {
-	log.debug "Executing 'refresh'"
 	def cmd = "/mca66?command=status&zone=${device.name.split("_")[2]}"
-    log.debug cmd
+    log.debug "Refresh: "+cmd
     parent.sendCommand(cmd)
 }
 
 def on() {
-	log.debug "Executing 'on'"
     def cmd = "/mca66?command=pwr&zone=${device.name.split("_")[2]}&value=1"
-    log.debug cmd
+    log.debug "On: "+cmd
     parent.sendCommand(cmd)
 }
 
 def off() {
-	log.debug "Executing 'off'"
     def cmd = "/mca66?command=pwr&zone=${device.name.split("_")[2]}&value=0"
-    log.debug cmd
+    log.debug "Off: "+cmd
     parent.sendCommand(cmd)
 }
 
@@ -121,36 +115,27 @@ def source1() { source_switch(1)}
 def source2() { source_switch(2)}
 def source3() { source_switch(3)}
 def source_switch(new_source) {
-	//log.debug "executing source 1: ${new_source}"
-    log.debug "Executing source switch"
     def cmd = "/mca66?command=setinput&zone=${device.name.split("_")[2]}&value=${new_source}"
-    log.debug cmd
+    log.debug "Source: "+cmd
     parent.sendCommand(cmd)
 }
 
 def volUp() {
-	log.debug "Executing 'VolUp'"
     def cmd = "/mca66?command=volup&zone=${device.name.split("_")[2]}"
-    log.debug cmd
+    log.debug "VolUp: "+ cmd
     parent.sendCommand(cmd)
 }
 
 def volDown() {
-	log.debug "Executing 'Voldown'"
     def cmd = "/mca66?command=voldwn&zone=${device.name.split("_")[2]}"
-    log.debug cmd
+    log.debug "VolDown: "+cmd
     parent.sendCommand(cmd)
 }
 
-
-
 def setVol(value) {
-	log.debug "Received Vol: ${value}"
 	def vol = Math.round(value*0.60)
-	log.debug "Executing 'setVol'"
-    //sendEvent(name: "switch", value: "off")
-    def cmd = "/mca66?command=setvol&zone=${device.name.split("_")[2]}&value=${vol}"
-    log.debug cmd
+	def cmd = "/mca66?command=setvol&zone=${device.name.split("_")[2]}&value=${vol}"
+    log.debug "SetVol: " + cmd
     parent.sendCommand(cmd)
 }
 
@@ -166,7 +151,7 @@ def allOn() {
 
 def allOff() {
 	def cmd = "/mca66?command=allOff"
-    log.debug cmd
+    log.debug "Off: "+cmd
     parent.sendCommand(cmd)
 }
 
@@ -174,7 +159,7 @@ def allOff() {
 def updateZone(state_msg) {
 	log.debug "Status: ${state_msg}"
     
-    // Extract the info
+    // Extract the zone info (received from Parent)
     state.zone_name = state_msg['name']
     state.power_state = state_msg['power']
     state.volume = state_msg['vol'].toInteger()
@@ -198,11 +183,5 @@ def updateZone(state_msg) {
             sendEvent(name: "source${i}", value: "off")
         }
     }
-	
-    log.debug "Attributes: ${device.currentValue("volume")}"
-    
-    //log.debug "Name: ${device.name}"
-    //log.debug "displayname: ${device.displayName}"
-    //log.debug "label: ${device.label}"
 }
 
