@@ -14,18 +14,17 @@
  *
  */
 
-import groovy.json.JsonSlurper
-
 definition(
     name: "Home Audio Controller",
     namespace: "steve28",
     author: "Steve Sell",
-    description: "HDT MCA-66 Controller SmartApp",
+    description: "HTD MCA-66 Controller SmartApp",
     category: "My Apps",
     iconUrl: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience.png",
     iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png",
-    iconX3Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png")
+    iconX3Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png",
 	singleInstance: true
+)
 
 preferences {
   section("SmartThings Hub") {
@@ -34,77 +33,44 @@ preferences {
   section("MCA-66 Controller") {
     input "ip_address", "text", title: "Proxy Address", description: "(ie. 192.168.1.10)", required: true, defaultValue: "192.168.1.144"
     input "port", "text", title: "Proxy Port", description: "(ie. 8080)", required: true, defaultValue: "8080"
-    //input "zoneName1", "text", title: "Proxy Port", description: "Zone Name", required: true, defaultValue: "Zone 1"
-    //input "zoneName2", "text", title: "Proxy Port", description: "Zone Name", required: true, defaultValue: "Zone 2"
-    //input "zoneName3", "text", title: "Proxy Port", description: "Zone Name", required: true, defaultValue: "Zone 3"
-    //input "zoneName4", "text", title: "Proxy Port", description: "Zone Name", required: true, defaultValue: "Zone 4"
-    //input "zoneName5", "text", title: "Proxy Port", description: "Zone Name", required: true, defaultValue: "Zone 5"
-    //input "zoneName6", "text", title: "Proxy Port", description: "Zone Name", required: true, defaultValue: "Zone 6"
-
   }
 }
 
 def installed() {
 	log.debug "Installed with settings: ${settings}"
-	subscribeToEvents()
+    state.zone_labels = [1:'FamRoom Speakers',
+                         2:'Kitchen Speakers',
+                         3:'LivingRoom Speakers',
+                         4:'Office Speakers',
+                         5:'Bedroom Speakers',
+                         6:'Pattio Speakers']
     addZones()
-    log.debug "before runin"
-    runIn(5, refreshZones)
-    log.debug "after runin"
 }
 
 def uninstalled() {
-	log.debug "Uninstalling"
+	log.debug "Uninstalling.  Deleting children..."
 	deleteZones()
 }
+
 def updated() {
 	log.debug "Running Updated"
-	//deleteZones()
-    //runIn(2, addZones)
-    //runIn(5, refreshZones)
+    refreshZones()
 }
 
-def subscribeToEvents() {
-  	subscribe(location, null, lanResponseHandler, [filterEvents:false])
-}
-
-def lanResponseHandler(evt) {
-	log.debug "Received LAN message"
-    def map = parseLanMessage(evt.stringValue)
-	log.trace "headers: ${map.headers}"
-    log.trace "body: ${map.body}"
-    def body_json= new JsonSlurper().parseText(map.body)
-    //log.trace body_json["1"]
+def hubResponseHandler(hubResponse) {
+	if (hubResponse.status != 200) {
+    	log.err "Error talking to server: ${hubResponse.status}"
+        return
+    }
     
     // Send the zone status messages out to each zone
     for (def i=1;i<7;i++) {
     	def zonedevice = getChildDevice("mca66_zone_${i}")
         if (zonedevice) {
-        	log.debug body_json["${i}"]
-            zonedevice.updateZone(body_json["${i}"])
+        	log.debug "Zone ${i}: " + hubResponse.json["${i}"]
+            zonedevice.updateZone(hubResponse.json["${i}"])
         }
     }
-    return
-}
-
-private sendCommand(path) {
-	log.debug "Sending Command: ${path}"
-    if (settings.ip_address.length() == 0 ||
-        settings.port.length() == 0) {
-        log.error "SmartThings Node Proxy configuration not set!"
-        return
-    }
-
-    def host = settings.ip_address + ":" + settings.port
-    def headers = [:]
-    headers.put("HOST", host)
-
-    def hubAction = new physicalgraph.device.HubAction(
-        method: "GET",
-        path: path,
-        headers: headers
-    )
-    sendHubCommand(hubAction)
 }
 
 def refreshZones() {
@@ -128,22 +94,33 @@ def followMe(vol, src, all) {
         sendCommand("/mca66?command=setvol&zone=${i}&value=${vol}")
     }
 }
-def initialize() {
-	// TODO: subscribe to attributes, devices, locations, etc.
+
+private sendCommand(path) {
+	def host = settings.ip_address + ":" + settings.port
+	def myAction = new physicalgraph.device.HubAction([
+        method: "GET",
+        path: path,
+        headers: [
+            HOST: host
+        ]],
+        host,
+        [callback: "hubResponseHandler"]
+    )
+    sendHubCommand(myAction)
 }
 
 private addZones() {
-    def device_labels = ['FamRoom Speakers','Kitchen Speakers','LivingRoom Speakers','Office Speakers',
-            		     'Bedroom Speakers', 'Pattio Speakers']
-    log.debug "Adding Children"
+    log.debug "Adding zone children..."
+    log.debug state.zone_labels
     for (def i=1; i<7; i++) {
-    	log.debug "Adding mca66_zone_${i} ${device_labels[i-1]}"
+    	def zone_label = state.zone_labels[i]
+    	log.debug "Adding mca66_zone_${i} ${zone_label}"
         addChildDevice("steve28", "MCA-66 Zone", "mca66_zone_${i}", hostHub.id, 
-                       ["name":"mca66_zone_${i}", label:device_labels[i-1]])
+                       ["name":"mca66_zone_${i}", label:zone_label])
     }
 }
 
 private deleteZones() {
-	log.debug "Deleting Children"
+	log.debug "Deleting Children..."
 	getAllChildDevices().each { deleteChildDevice(it.deviceNetworkId) }
 }
