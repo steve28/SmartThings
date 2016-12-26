@@ -31,20 +31,15 @@ preferences {
     input "hostHub", "hub", title: "Select Hub", multiple: false, required: true
   }
   section("MCA-66 Controller") {
-    input "ip_address", "text", title: "Proxy Address", description: "(ie. 192.168.1.10)", required: true, defaultValue: "192.168.1.144"
-    input "port", "text", title: "Proxy Port", description: "(ie. 8080)", required: true, defaultValue: "8080"
+    input "ip_address", "text", title: "Controller Address", description: "(ie. 192.168.1.10)", required: true, defaultValue: "192.168.1.144"
+    input "port", "text", title: "Controller Port", description: "(ie. 8080)", required: true, defaultValue: "8080"
   }
 }
 
 def installed() {
 	log.debug "Installed with settings: ${settings}"
-    state.zone_labels = [1:'FamRoom Speakers',
-                         2:'Kitchen Speakers',
-                         3:'LivingRoom Speakers',
-                         4:'Office Speakers',
-                         5:'Bedroom Speakers',
-                         6:'Pattio Speakers']
-    addZones()
+    log.debug "Retrieving zone labels and adding children."
+    sendCommand("/mca66?command=getzonelabels","getZoneLabels")
 }
 
 def uninstalled() {
@@ -95,7 +90,7 @@ def followMe(vol, src, all) {
     }
 }
 
-private sendCommand(path) {
+private sendCommand(path, callbackHandler="hubResponseHandler") {
 	def host = settings.ip_address + ":" + settings.port
 	def myAction = new physicalgraph.device.HubAction([
         method: "GET",
@@ -104,16 +99,16 @@ private sendCommand(path) {
             HOST: host
         ]],
         host,
-        [callback: "hubResponseHandler"]
+        [callback: callbackHandler]
     )
     sendHubCommand(myAction)
 }
 
-private addZones() {
+private addZones(names_json) {
     log.debug "Adding zone children..."
-    log.debug state.zone_labels
+    log.debug names_json
     for (def i=1; i<7; i++) {
-    	def zone_label = state.zone_labels[i]
+    	def zone_label = names_json["${i}"]
     	log.debug "Adding mca66_zone_${i} ${zone_label}"
         addChildDevice("steve28", "MCA-66 Zone", "mca66_zone_${i}", hostHub.id, 
                        ["name":"mca66_zone_${i}", label:zone_label])
@@ -123,4 +118,13 @@ private addZones() {
 private deleteZones() {
 	log.debug "Deleting Children..."
 	getAllChildDevices().each { deleteChildDevice(it.deviceNetworkId) }
+}
+
+def getZoneLabels(hubResponse) {
+	log.debug "Got zone label reply"
+    if (hubResponse.status != 200) {
+        log.err "Error talking to server: ${hubResponse.status}"
+    } else {
+        addZones(hubResponse.json)
+    }
 }
