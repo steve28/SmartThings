@@ -47,7 +47,7 @@ metadata {
             tileAttribute ("device.sourceName", key: "SECONDARY_CONTROL") {
                 attributeState "sourceName", label:'${currentValue}'
             }
-            tileAttribute ("device.volume", key: "SLIDER_CONTROL",range:"(0..61)") {
+            tileAttribute ("device.volume", key: "SLIDER_CONTROL") {
                 attributeState "volume", action:"setVol"
             }
             tileAttribute("device.volume", key: "VALUE_CONTROL") {
@@ -55,7 +55,7 @@ metadata {
                 attributeState "VALUE_DOWN", action: "volDown"
             }
         }
-        standardTile("s1", "device.source1", decoration: "flat", width: 1, height: 1) {
+        standardTile("source1", "device.source1", decoration: "flat", width: 1, height: 1) {
             state("off", label:"Source 1", action:"source1", icon:"https://raw.githubusercontent.com/redloro/smartthings/master/images/indicator-dot-gray.png", backgroundColor:"#ffffff")
             state("on", label:"Source 1", action:"source1", icon:"https://raw.githubusercontent.com/redloro/smartthings/master/images/indicator-dot-green.png", backgroundColor:"#ffffff")
         }
